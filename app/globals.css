@@ -7,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-dm-sans);
+  --font-mono: var(--font-ibm-plex-mono);
+  --font-heading: var(--font-playfair);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,83 +48,187 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ─── LIGHT MODE (default) ─────────────────────────────────────────────────
+   "Morning Parchment" — warm cream base, earthy amber accent.
+   Low contrast extremes so it never fatigues the eye.
+   ────────────────────────────────────────────────────────────────────────── */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* Warm off-white — softer than pure white */
+  --background: oklch(0.975 0.008 72);
+  --foreground: oklch(0.2 0.014 50);
+
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.2 0.014 50);
+
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --popover-foreground: oklch(0.2 0.014 50);
+
+  /* Deep amber-rust — rich but not harsh */
+  --primary: oklch(0.55 0.135 48);
+  --primary-foreground: oklch(0.98 0.005 80);
+
+  --secondary: oklch(0.94 0.01 70);
+  --secondary-foreground: oklch(0.3 0.012 50);
+
+  --muted: oklch(0.94 0.008 70);
+  --muted-foreground: oklch(0.5 0.01 58);
+
+  --accent: oklch(0.94 0.01 70);
+  --accent-foreground: oklch(0.2 0.014 50);
+
+  --destructive: oklch(0.56 0.2 27);
+  --destructive-foreground: oklch(0.98 0.005 80);
+
+  --border: oklch(0.89 0.01 68);
+  --input: oklch(0.92 0.009 70);
+  --ring: oklch(0.55 0.135 48);
+
+  --radius: 0.5rem;
+
+  /* Chart */
+  --chart-1: oklch(0.55 0.135 48);
+  --chart-2: oklch(0.55 0.12 155);
+  --chart-3: oklch(0.56 0.2 27);
+  --chart-4: oklch(0.55 0.11 248);
+  --chart-5: oklch(0.52 0.11 310);
+
+  /* Sidebar — slightly deeper warm tone */
+  --sidebar: oklch(0.962 0.01 70);
+  --sidebar-foreground: oklch(0.2 0.014 50);
+  --sidebar-primary: oklch(0.55 0.135 48);
+  --sidebar-primary-foreground: oklch(0.98 0.005 80);
+  --sidebar-accent: oklch(0.93 0.011 68);
+  --sidebar-accent-foreground: oklch(0.2 0.014 50);
+  --sidebar-border: oklch(0.87 0.011 68);
+  --sidebar-ring: oklch(0.55 0.135 48);
 }
 
+/* ─── DARK MODE ─────────────────────────────────────────────────────────────
+   "Evening Slate" — cool blue-grey base, warm amber accent.
+   The blue-grey tint is far easier on eyes than near-black.
+   ────────────────────────────────────────────────────────────────────────── */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Cool deep slate — not harsh near-black */
+  --background: oklch(0.15 0.016 245);
+  --foreground: oklch(0.93 0.008 225);
+
+  --card: oklch(0.19 0.014 245);
+  --card-foreground: oklch(0.93 0.008 225);
+
+  --popover: oklch(0.19 0.014 245);
+  --popover-foreground: oklch(0.93 0.008 225);
+
+  /* Warm amber gold — glows against cool slate */
+  --primary: oklch(0.74 0.145 68);
+  --primary-foreground: oklch(0.13 0.012 50);
+
+  --secondary: oklch(0.23 0.014 245);
+  --secondary-foreground: oklch(0.85 0.009 225);
+
+  --muted: oklch(0.21 0.013 245);
+  --muted-foreground: oklch(0.52 0.013 230);
+
+  --accent: oklch(0.23 0.014 245);
+  --accent-foreground: oklch(0.93 0.008 225);
+
+  --destructive: oklch(0.64 0.2 25);
+  --destructive-foreground: oklch(0.93 0.008 225);
+
+  --border: oklch(0.27 0.015 245);
+  --input: oklch(0.23 0.014 245);
+  --ring: oklch(0.74 0.145 68);
+
+  /* Chart */
+  --chart-1: oklch(0.74 0.145 68);
+  --chart-2: oklch(0.65 0.13 155);
+  --chart-3: oklch(0.64 0.2 25);
+  --chart-4: oklch(0.65 0.12 250);
+  --chart-5: oklch(0.62 0.11 310);
+
+  /* Sidebar — deepest slate */
+  --sidebar: oklch(0.118 0.014 245);
+  --sidebar-foreground: oklch(0.93 0.008 225);
+  --sidebar-primary: oklch(0.74 0.145 68);
+  --sidebar-primary-foreground: oklch(0.13 0.012 50);
+  --sidebar-accent: oklch(0.2 0.013 245);
+  --sidebar-accent-foreground: oklch(0.93 0.008 225);
+  --sidebar-border: oklch(0.22 0.013 245);
+  --sidebar-ring: oklch(0.74 0.145 68);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-dm-sans), sans-serif;
+    /* Smooth theme transitions */
+    transition: background-color 200ms ease, color 200ms ease;
   }
-  html {
-    @apply font-sans;
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-playfair), serif;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
   }
+}
+
+/* Theme transition for all elements */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+/* But NOT on animations/transforms — don't slow them down */
+.status-pending, [class*="animate-"] {
+  transition: none;
+}
+
+/* Scrollbar — adapts to theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* Sidebar grain texture */
+.sidebar-grain {
+  position: relative;
+}
+.sidebar-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Status pill pulse */
+@keyframes pending-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.status-pending {
+  animation: pending-pulse 2s ease-in-out infinite;
+}
+
+/* Theme toggle icon swap */
+@keyframes spin-in {
+  from { transform: rotate(-90deg) scale(0.6); opacity: 0; }
+  to   { transform: rotate(0deg)   scale(1);   opacity: 1; }
+}
+.theme-icon-enter {
+  animation: spin-in 200ms ease forwards;
 }

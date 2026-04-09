@@ -1,94 +1,58 @@
 # CLAUDE.md
 
-> Akshat:
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# Lifafa MVP - Project Architecture & Setup
+Do not make any changes until you have 95% confidence in what you need to build. Ask follow-up questions until you reach that confidence level.
 
-## 📖 Overview
+## Overview
 
-The Lifafa app is a high-speed, secure digital ledger for Indian weddings. It allows users to quickly log cash gifts and _lifafas_ (envelopes) using a hybrid approach of image capture, voice dictation, and manual entry. AI processing is handled locally via Ollama for maximum privacy and zero API costs.
+Lifafa is a high-speed, secure digital ledger for Indian weddings. It logs cash gifts and lifafas (envelopes) via image capture, voice dictation, and manual entry. AI processing runs locally via Ollama (LLaVA for vision, Llama 3 for chat) for privacy and zero API costs.
 
----
+## Commands
 
-## ✨ Core Functionalities (MVP Scope)
+- `npm run dev` — start Next.js dev server
+- `npm run build` — production build
+- `npm run lint` — run ESLint
 
-These are the strict requirements and features that need to be built for the initial launch.
+No test framework is configured yet.
 
-### 1. Guest List Management (The Foundation)
+## Architecture
 
-- CSV Upload: Users can upload a .csv file containing their master guest list.
-- Column Mapping: The system should expect or map at least two columns: Name and Relation/Tag (e.g., "Bride Side", "Colleague").
-- Guest Directory UI: A simple tab to view, search, and manually add/edit guests.
+**Stack:** Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, shadcn/ui, Supabase, Zustand (state), Ollama (local AI).
 
-### 2. The Capture Hub (Data Entry)
+**Routing:** App Router with pages at `/dashboard`, `/capture`, `/guests`, `/munshi`. Root `/` redirects to `/dashboard`.
 
-This is the most critical UI. It must be mobile-friendly and extremely fast to prevent bottlenecks during the event.
+**Data flow:** Frontend uses Supabase client (`lib/supabase.ts`) with env vars `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Ollama runs at `NEXT_PUBLIC_OLLAMA_URL` (defaults to `http://localhost:11434`), accessed via `lib/ollama.ts`.
 
-- Mode A: Snap & Type (For Envelopes):
-  - A camera interface to snap a photo of the _lifafa_.
-  - Immediately after snapping, a large Numpad UI appears on-screen.
-  - User types the cash amount found inside and hits "Save".
-  - App uploads image in the background and sets status to PENDING.
-- Mode B: Voice Munshi (For Direct Cash):
-  - A "Hold to Speak" microphone button.
-  - User dictates (e.g., "Suresh uncle gave 2100 cash").
-  - App records audio, uploads .wav`/.mp3` to bucket, and triggers the text-extraction pipeline.
-- Mode C: Manual Fallback: A standard form to type Name, Amount, and Type if cameras/mics fail.
+**Database schema** (Supabase/Postgres): Two tables — `guests` (id, name, relation, phone, address) and `ledger` (id, guest_id FK, amount, extracted_name, status, entry_type, media_url). Status values: PENDING, PROCESSING, COMPLETED, FAILED. Entry types: CASH, ENVELOPE, VOICE, MANUAL. See `SQL-FORMAT.md` for full DDL.
 
-### 3. The Ledger Dashboard (The UI Hub)
+**Types:** Defined in `types/ledger.ts` — `GiftEntry`, `Status`, `GiftType`, `CaptureMode`. Note: frontend types use camelCase (`extractedName`) while DB uses snake_case (`extracted_name`).
 
-- Real-time Table: A data grid displaying all logged gifts. Columns: Status, Amount, Extracted Name, Matched Guest, Type, Media.
-- Status Indicators: Clear visual tags for PENDING (spinner), COMPLETED (green check), or FAILED (red warning).
-- Media Verification: Small icons next to each row to "View Image" or "Play Audio" for manual verification.
-- Fuzzy Matching & Reconciliation: \* If the AI extracts a name (e.g., "Mr. Chauhan"), the UI should suggest matches from the Guest List.
-  - Users can click a dropdown on the row to confirm the match or manually link it to the correct guest.
+**Theming:** Custom dual-theme system — light ("Morning Parchment", warm amber) and dark ("Evening Slate", cool blue-grey with amber accent). Uses oklch colors in `globals.css`. Three fonts: DM Sans (body via `--font-sans`), Playfair Display (headings via `--font-heading`), IBM Plex Mono (mono via `--font-mono`).
 
-### 4. The AI Processing Engine (Background Tasks)
+**Key patterns:**
+- Path alias: `@/*` maps to project root
+- UI components from shadcn in `components/ui/`
+- Forms use react-hook-form + zod validation
+- CSV parsing via papaparse
+- `lib/mock-data.ts` has sample data for development
+- A separate `local-worker/` directory is planned for background AI processing (polls Supabase, runs LLaVA/Llama, updates DB)
 
-- Vision Extraction: Local script runs LLaVA on pending images to extract handwriting into text.
-- Voice Extraction: Local script (or browser API) runs speech-to-text to extract names and amounts from audio logs.
-- Automated Syncing: The local worker strictly updates the Supabase cloud database automatically without user intervention.
+## MVP Scope
 
-### 5. "Ask Munshi" (The Interactive Chat)
+### 1. Guest List Management
+CSV upload with column mapping (Name, Relation/Tag). Guest directory UI with search and manual add/edit.
 
-- Contextual Chat Panel: A floating or side-panel chat UI.
-- Data Injection: When the user asks a question, the frontend securely fetches the completed ledger data and feeds it to the local Llama 3 model via the tunnel.
-- Real-time Streaming: The chatbot streams text back to the user instantly to answer questions like:
-  - _"How many blank envelopes are there?"_
-  - _"What's the total cash from the Groom's side?"_
+### 2. Capture Hub (Data Entry — must be mobile-first and fast)
+- **Snap & Type:** Camera photo of lifafa, then numpad for amount, background upload, status=PENDING
+- **Voice Munshi:** Hold-to-speak, dictate name+amount, upload audio, trigger extraction
+- **Manual Fallback:** Standard form for Name, Amount, Type
 
----
+### 3. Ledger Dashboard
+Real-time data grid with status indicators (PENDING/COMPLETED/FAILED), media verification (view image/play audio), fuzzy name matching against guest list with dropdown to confirm matches.
 
-## 📂 Recommended Folder Structure
+### 4. AI Processing Engine
+Local LLaVA for handwriting extraction from envelope images. Local speech-to-text for voice entries. Background worker auto-syncs results to Supabase.
 
-```text
-/lifafa-project
-│
-├── /app                  # Next.js App Router (Frontend & API)
-│   ├── /api              # Backend API Routes
-│   │   ├── /upload       # Handles image/audio to Supabase Bucket
-
-> Akshat:
-│   │   ├── /chat         # Direct tunnel to local Ollama text model
-│   │   └── /webhook      # Supabase triggers
-│   ├── /dashboard        # Main ledger view
-│   ├── /capture          # UI for Camera/Voice input
-│   └── layout.tsx        # Global layout & providers
-│
-├── /components           # React Components
-│   ├── /ui               # Shadcn UI primitives (buttons, dialogs, etc.)
-│   ├── /forms            # Reusable form components
-│   └── /shared           # Headers, sidebars, loaders
-│
-├── /lib                  # Utilities & Configurations
-│   ├── supabase.ts       # Supabase client initialization
-│   ├── utils.ts          # Tailwind merge utilities (Shadcn standard)
-│   └── ollama.ts         # Helper functions for AI prompts
-│
-├── /types                # TypeScript definitions (Ledger, Guest, etc.)
-├── /store                # Zustand state stores (e.g., useLedgerStore.ts)
-│
-└── /local-worker         # SEPARATE SCRIPT: Runs locally next to Ollama
-    ├── worker.js         # Polls Supabase -> Runs LLaVA -> Updates DB
-    └── package.json
-```
+### 5. Ask Munshi (Chat)
+Side-panel chat powered by local Llama 3. Fetches completed ledger data and answers questions like "What's the total cash from the Groom's side?"

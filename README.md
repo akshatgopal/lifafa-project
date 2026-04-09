@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lifafa — Your Digital Munshi
+
+A high-speed, secure digital ledger for Indian weddings. Lifafa helps users quickly log cash gifts and *lifafas* (envelopes) using image capture, voice dictation, and manual entry. AI processing runs entirely locally via [Ollama](https://ollama.com/) for maximum privacy and zero API costs.
+
+## Features
+
+- **Capture Hub** — Three modes for logging gifts at speed during the event:
+  - *Snap & Type* — photograph the envelope, punch in the amount on a numpad
+  - *Voice Munshi* — hold-to-speak dictation ("Suresh uncle gave 2100 cash"), AI extracts name + amount
+  - *Manual Entry* — fallback form when cameras/mics aren't available
+- **Gift Ledger Dashboard** — Real-time table of all entries with status tracking (Pending / Processing / Completed / Failed), amount totals, and media verification
+- **Guest Directory** — Upload a CSV guest list or add guests manually; used for fuzzy-matching extracted names to known guests
+- **Ask Munshi** — Chat interface powered by local Llama 3 to answer questions about your ledger ("Total from Groom's side?", "How many blank envelopes?")
+- **AI Processing** — Local LLaVA extracts handwriting from envelope photos; speech-to-text handles voice entries; a background worker syncs results to Supabase automatically
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router) |
+| UI | React 19, Tailwind CSS v4, shadcn/ui, Radix primitives |
+| State | Zustand |
+| Backend | Supabase (Postgres DB + Storage buckets) |
+| AI | Ollama (LLaVA for vision, Llama 3 for chat) — runs locally |
+| Forms | react-hook-form + Zod |
+| CSV | PapaParse |
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- A [Supabase](https://supabase.com/) project with the schema from `SQL-FORMAT.md`
+- [Ollama](https://ollama.com/) running locally (for AI features)
+
+### Setup
 
 ```bash
+# Install dependencies
+npm install
+
+# Create .env.local with your Supabase credentials
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-anon-key
+NEXT_PUBLIC_OLLAMA_URL=http://localhost:11434  # optional, this is the default
+
+# Start the dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) — you'll be redirected to the dashboard.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Database Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create the two tables in your Supabase SQL editor using the schema in `SQL-FORMAT.md`:
 
-## Learn More
+- **guests** — id, name, relation, phone, address
+- **ledger** — id, guest_id (FK), amount, extracted_name, status, entry_type, media_url
 
-To learn more about Next.js, take a look at the following resources:
+### Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build |
+| `npm run start` | Serve production build |
+| `npm run lint` | Run ESLint |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+```
+app/
+  dashboard/    — Gift ledger view with stats + data table
+  capture/      — Camera, voice, and manual entry modes
+  guests/       — Guest directory with CSV upload
+  munshi/       — AI chat assistant
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+components/
+  ui/           — shadcn/ui primitives
+  dashboard/    — Stats cards, ledger table
+  capture/      — Mode selector, snap mode, voice mode
+  munshi/       — Chat message, chat input
+  forms/        — Manual entry, add guest dialog, CSV upload dialog
+  shared/       — App layout, sidebar, numpad, status badge
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+lib/
+  supabase.ts   — Supabase client
+  ollama.ts     — Ollama API helpers + prompt templates
+  csv.ts        — CSV parsing utility
+  mock-data.ts  — Sample ledger data for development
+
+types/
+  ledger.ts     — LedgerEntry, LedgerStatus, EntryType, CaptureMode
+  guest.ts      — Guest, CSVRow
+```
+
+## License
+
+Private project.
