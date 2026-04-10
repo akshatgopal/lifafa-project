@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Mic, Play, Pause, RotateCcw, Loader2, CheckCircle2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 
 interface VoiceModeProps {
   onCancel: () => void;
@@ -94,38 +94,13 @@ export function VoiceMode({ onCancel }: VoiceModeProps) {
     setError(null);
     setSaving(true);
 
-    const fileName = `voice_${Date.now()}.webm`;
-
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("media")
-      .upload(fileName, audioBlob, { contentType: "audio/webm" });
-
-    if (uploadError) {
-      setError(uploadError.message);
+    try {
+      await api.createVoice(audioBlob, `voice_${Date.now()}.webm`);
+      router.push("/dashboard");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save recording");
       setSaving(false);
-      return;
     }
-
-    const { data: urlData } = supabase.storage.from("media").getPublicUrl(uploadData.path);
-    const publicUrl = urlData.publicUrl;
-
-    console.log("Uploaded audio URL:", publicUrl);
-
-    const { error: dbError } = await supabase.from("ledger").insert({
-      amount: 0,
-      extracted_name: null,
-      entry_type: "VOICE",
-      status: "PENDING",
-      media_url: publicUrl,
-    });
-
-    if (dbError) {
-      setError(dbError.message);
-      setSaving(false);
-      return;
-    }
-
-    router.push("/dashboard");
   }
 
   function formatTime(seconds: number) {

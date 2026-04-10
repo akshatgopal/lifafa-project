@@ -5,7 +5,7 @@ import { UserPlus, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 
 interface AddGuestDialogProps {
   open: boolean;
@@ -42,14 +42,12 @@ export function AddGuestDialog({ open, onOpenChange, onGuestAdded }: AddGuestDia
     setSaveSuccess(false);
 
     try {
-      const { error } = await supabase.from("guests").insert({
+      await api.createGuest({
         name: guestName.trim(),
         relation: guestRelation.trim() || null,
         phone: guestPhone.trim() || null,
         address: guestAddress.trim() || null,
       });
-
-      if (error) throw error;
 
       setSaveSuccess(true);
       setTimeout(() => {
@@ -59,7 +57,11 @@ export function AddGuestDialog({ open, onOpenChange, onGuestAdded }: AddGuestDia
       }, 1500);
     } catch (error) {
       console.error("Add guest error:", error);
-      setSaveError("Failed to add guest. Check your Supabase connection.");
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : "Failed to add guest. Check your backend connection."
+      );
     } finally {
       setIsSaving(false);
     }

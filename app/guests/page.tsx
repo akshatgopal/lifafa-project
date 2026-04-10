@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AddGuestDialog } from "@/components/forms/add-guest-dialog";
 import { CSVUploadDialog } from "@/components/forms/csv-upload-dialog";
-import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 import { Guest } from "@/types/guest";
 
 export default function GuestsPage() {
@@ -30,12 +30,7 @@ export default function GuestsPage() {
     setLoading(true);
     setError("");
     try {
-      const { data, error } = await supabase
-        .from("guests")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
+      const data = await api.listGuests();
       setGuests(data || []);
     } catch (err) {
       console.error("Fetch error:", err);

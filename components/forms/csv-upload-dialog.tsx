@@ -5,7 +5,7 @@ import { Upload, FileUp, Loader2, CheckCircle2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 import { parseCSV } from "@/lib/csv";
 import { CSVRow } from "@/types/guest";
 
@@ -61,38 +61,41 @@ export function CSVUploadDialog({ open, onOpenChange, onUploadComplete }: CSVUpl
     try {
       const reader = new FileReader();
       reader.onload = async (event) => {
-        const text = event.target?.result as string;
-        const parsed = parseCSV(text);
+        try {
+          const text = event.target?.result as string;
+          const parsed = parseCSV(text);
 
-        setUploadProgress(30);
+          setUploadProgress(30);
 
-        const guestsToInsert = parsed.map((row) => ({
-          name: row.name,
-          relation: row.relation || null,
-          phone: row.phone || null,
-          address: row.address || null,
-        }));
+          const guestsToInsert = parsed.map((row) => ({
+            name: row.name,
+            relation: row.relation || null,
+            phone: row.phone || null,
+            address: row.address || null,
+          }));
 
-        setUploadProgress(60);
+          setUploadProgress(60);
 
-        const { error } = await supabase.from("guests").upsert(guestsToInsert, { onConflict: "name,relation" });
+          await api.bulkUpsertGuests(guestsToInsert);
 
-        setUploadProgress(100);
-
-        if (error) throw error;
-
-        setUploadStatus("success");
-        setTimeout(() => {
-          onOpenChange(false);
-          resetDialog();
-          onUploadComplete();
-        }, 1500);
+          setUploadProgress(100);
+          setUploadStatus("success");
+          setTimeout(() => {
+            onOpenChange(false);
+            resetDialog();
+            onUploadComplete();
+          }, 1500);
+        } catch (innerError) {
+          console.error("Upload error:", innerError);
+          setUploadStatus("error");
+        } finally {
+          setIsUploading(false);
+        }
       };
       reader.readAsText(selectedFile);
     } catch (error) {
       console.error("Upload error:", error);
       setUploadStatus("error");
-    } finally {
       setIsUploading(false);
     }
   }

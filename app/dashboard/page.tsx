@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { LedgerTable } from "@/components/dashboard/ledger-table";
-import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 import type { LedgerEntry } from "@/types/ledger";
 
 export default function DashboardPage() {
@@ -17,17 +17,14 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function fetchEntries() {
-      const { data, error: dbError } = await supabase
-        .from("ledger")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (dbError) {
-        setError(dbError.message);
-      } else {
-        setEntries(data as LedgerEntry[]);
+      try {
+        const data = await api.listLedger();
+        setEntries(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load ledger");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
 
     fetchEntries();

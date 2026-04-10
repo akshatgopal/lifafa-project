@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChatMessage, ThinkingIndicator } from "@/components/munshi/chat-message";
 import { ChatInput } from "@/components/munshi/chat-input";
+import { api } from "@/lib/api";
 
 interface Message {
   id: string;
@@ -25,36 +26,50 @@ const INITIAL_MESSAGES: Message[] = [
   { id: "1", role: "assistant", content: "Salaam! I'm Munshi, your AI ledger assistant. I have access to your complete gift ledger and can answer questions about totals, guests, pending items, and more.\n\nWhat would you like to know?", timestamp: "11:30 AM" },
 ];
 
-const MOCK_RESPONSES: Record<string, string> = {
-  total: "The total amount collected so far is **₹50,300** across 8 entries. This includes ₹47,200 from completed entries.",
-  blank: "There are **2 blank envelopes** (entries #002 and #007) with images captured but amounts not yet extracted by AI.",
-  groom: "From the Groom's side, **₹32,100** has been collected across 3 entries:\n- Sunita Verma: ₹11,000\n- Vikram Mehta: ₹21,000\n- 1 pending entry",
-  most: "The highest gift so far is **₹21,000** from Vikram Mehta (Family Friend, Bride's Side), followed by Sunita Verma with ₹11,000.",
-};
+function nowTimestamp(): string {
+  return new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+}
 
 export default function MunshiPage() {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [isThinking, setIsThinking] = useState(false);
 
-  function sendMessage(text: string) {
+  async function sendMessage(text: string) {
     if (!text.trim()) return;
     const userMsg: Message = {
-      id: Date.now().toString(), role: "user", content: text,
-      timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
+      id: Date.now().toString(),
+      role: "user",
+      content: text,
+      timestamp: nowTimestamp(),
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsThinking(true);
 
-    setTimeout(() => {
-      const key = Object.keys(MOCK_RESPONSES).find((k) => text.toLowerCase().includes(k));
+    try {
+      const { answer } = await api.chat(text);
       setMessages((prev) => [
         ...prev,
-        { id: (Date.now() + 1).toString(), role: "assistant",
-          content: key ? MOCK_RESPONSES[key] : "I'm analyzing your ledger data... Based on what I can see, your event is going well! Would you like a detailed breakdown by relation or side?",
-          timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) },
+        {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: answer,
+          timestamp: nowTimestamp(),
+        },
       ]);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: `Sorry, I couldn't reach the ledger right now. (${message})`,
+          timestamp: nowTimestamp(),
+        },
+      ]);
+    } finally {
       setIsThinking(false);
-    }, 1200);
+    }
   }
 
   return (

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 import type { EntryType } from "@/types/ledger";
 
 interface ManualEntryFormProps {
@@ -27,20 +27,17 @@ export function ManualEntryForm({ onCancel }: ManualEntryFormProps) {
     setError(null);
     setSaving(true);
 
-    const { error: dbError } = await supabase.from("ledger").insert({
-      amount: parseInt(amount, 10),
-      extracted_name: extractedName.trim(),
-      entry_type: entryType,
-      status: "COMPLETED",
-    });
-
-    if (dbError) {
-      setError(dbError.message);
+    try {
+      await api.createManual({
+        amount: parseInt(amount, 10),
+        extracted_name: extractedName.trim(),
+        entry_type: entryType as "CASH" | "ENVELOPE",
+      });
+      router.push("/dashboard");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save entry");
       setSaving(false);
-      return;
     }
-
-    router.push("/dashboard");
   }
 
   const parsedAmount = parseInt(amount, 10);

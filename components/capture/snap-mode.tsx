@@ -5,7 +5,7 @@ import { Camera, Upload, X, CheckCircle2, ImageIcon, AlertCircle } from "lucide-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Numpad } from "@/components/shared/numpad";
-import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 
 interface SnapModeProps {
   onDone: () => void;
@@ -43,37 +43,16 @@ export function SnapMode({ onDone }: SnapModeProps) {
   async function handleSave() {
     const amount = parseFloat(numpadValue);
     if (!amount || amount <= 0) return;
+    if (!uploadedFile) {
+      setError("Add a photo before saving");
+      return;
+    }
 
     setSaving(true);
     setError(null);
 
     try {
-      let mediaUrl: string | null = null;
-
-      if (uploadedFile) {
-        const ext = uploadedFile.name.split(".").pop() ?? "jpg";
-        const fileName = `snap_${Date.now()}.${ext}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from("media")
-          .upload(fileName, uploadedFile, { upsert: false });
-
-        if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
-
-        mediaUrl = supabase.storage.from("media").getPublicUrl(fileName).data.publicUrl;
-      }
-
-      const { error: insertError } = await supabase.from("ledger").insert({
-        amount,
-        status: "PENDING",
-        entry_type: "ENVELOPE",
-        media_url: mediaUrl,
-        guest_id: null,
-        extracted_name: null,
-      });
-
-      if (insertError) throw new Error(`Save failed: ${insertError.message}`);
-
+      await api.createSnap(Math.round(amount), uploadedFile);
       onDone();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
