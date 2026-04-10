@@ -83,8 +83,12 @@ export function SnapMode({ onDone }: SnapModeProps) {
   }
 
   const amount = parseFloat(numpadValue) || 0;
-  const saveDisabled = amount <= 0;
-  const saveDisabledReason = !numpadValue ? "Enter an amount to save" : "Amount must be greater than ₹0";
+  const saveDisabled = !uploadedFile || amount <= 0;
+  const saveDisabledReason = !uploadedFile && amount <= 0
+    ? "Add a photo and enter an amount to save"
+    : !uploadedFile
+    ? "Add a photo to save"
+    : "Enter an amount greater than ₹0 to save";
 
   return (
     <div className="grid grid-cols-2 gap-6 items-stretch min-h-[520px]">
