@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Search, Upload, UserPlus, Users, MoreHorizontal, Loader2, AlertCircle } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Search, Upload, UserPlus, Users, MoreHorizontal, Loader2, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,9 @@ export default function GuestsPage() {
   const [error, setError] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAddGuestOpen, setIsAddGuestOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
   useEffect(() => {
     fetchGuests();
@@ -41,6 +44,23 @@ export default function GuestsPage() {
       setLoading(false);
     }
   }
+
+  const filteredGuests = useMemo(() => {
+    if (!search.trim()) return guests;
+    const q = search.toLowerCase();
+    return guests.filter(
+      (g) =>
+        g.name.toLowerCase().includes(q) ||
+        (g.relation && g.relation.toLowerCase().includes(q))
+    );
+  }, [guests, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredGuests.length / pageSize));
+  const safeePage = Math.min(page, totalPages);
+  const paginatedGuests = filteredGuests.slice(
+    (safeePage - 1) * pageSize,
+    safeePage * pageSize
+  );
 
   const totalGuests = guests.length;
 
@@ -78,7 +98,12 @@ export default function GuestsPage() {
         <div className="flex items-center gap-2">
           <div className="relative max-w-xs flex-1">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60" strokeWidth={2} />
-            <Input placeholder="Search by name or relation..." className="pl-8 h-8" />
+            <Input
+              placeholder="Search by name or relation..."
+              className="pl-8 h-8"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            />
           </div>
         </div>
 
@@ -110,7 +135,7 @@ export default function GuestsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {guests.map((guest) => (
+                {paginatedGuests.map((guest) => (
                   <TableRow key={guest.id} className="group">
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -144,8 +169,32 @@ export default function GuestsPage() {
           )}
           <Separator />
           <div className="flex items-center justify-between px-4 py-3">
-            <p className="text-xs text-muted-foreground">{totalGuests} guests total</p>
-            <Button variant="link" size="sm" className="text-primary h-auto p-0" onClick={() => setIsAddGuestOpen(true)}>+ Add guest manually</Button>
+            <p className="text-xs text-muted-foreground">
+              {filteredGuests.length === totalGuests
+                ? `${totalGuests} guests total`
+                : `${filteredGuests.length} of ${totalGuests} guests`}
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon-sm"
+                disabled={safeePage <= 1}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {safeePage} / {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                disabled={safeePage >= totalPages}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </Card>
       </div>

@@ -63,7 +63,7 @@ export function ModeSelector({ onSelect }: ModeSelectorProps) {
       <div className="mt-2 flex items-start gap-3 rounded-xl border border-dashed border-border p-4">
         <Hash className="h-4 w-4 text-muted-foreground/50 mt-0.5 shrink-0" strokeWidth={1.75} />
         <p className="text-xs text-muted-foreground leading-relaxed">
-          <span className="font-medium text-foreground">Tip:</span> Use Snap &amp; Type for envelopes and Voice Munshi for direct cash — fastest combo during the event.
+          <span className="font-medium text-foreground">Tip : </span> Use Snap &amp; Type for envelopes and Voice Munshi for direct cash — fastest combo during the event.
         </p>
       </div>
     </div>

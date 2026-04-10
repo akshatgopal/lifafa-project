@@ -1,51 +1,134 @@
 "use client";
 
-import { CheckCircle2 } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { supabase } from "@/lib/supabase";
+import type { EntryType } from "@/types/ledger";
 
 interface ManualEntryFormProps {
   onCancel: () => void;
-  onSave: () => void;
 }
 
-export function ManualEntryForm({ onCancel, onSave }: ManualEntryFormProps) {
+export function ManualEntryForm({ onCancel }: ManualEntryFormProps) {
+  const router = useRouter();
+  const [extractedName, setExtractedName] = useState("");
+  const [amount, setAmount] = useState("");
+  const [entryType, setEntryType] = useState<EntryType>("CASH");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSave() {
+    setError(null);
+
+    const trimmedName = extractedName.trim();
+    const parsedAmount = parseInt(amount, 10);
+
+    if (!trimmedName) {
+      setError("Guest name is required.");
+      return;
+    }
+    if (!amount || isNaN(parsedAmount) || parsedAmount < 0) {
+      setError("Enter a valid amount (0 or more).");
+      return;
+    }
+
+    setSaving(true);
+
+    const { error: dbError } = await supabase.from("ledger").insert({
+      amount: parsedAmount,
+      extracted_name: trimmedName,
+      entry_type: entryType,
+      status: "COMPLETED",
+    });
+
+    if (dbError) {
+      setError(dbError.message);
+      setSaving(false);
+      return;
+    }
+
+    router.push("/dashboard");
+  }
+
+  const entryTypes: { label: string; value: EntryType }[] = [
+    { label: "Cash", value: "CASH" },
+    { label: "Envelope", value: "ENVELOPE" },
+  ];
+
   return (
     <div className="space-y-4">
-      {[
-        { label: "Guest Name", placeholder: "e.g. Ramesh Chauhan", type: "text" },
-        { label: "Amount (₹)", placeholder: "e.g. 2100", type: "number" }
-      ].map(({ label, placeholder, type }) => (
-        <div key={label} className="flex flex-col gap-1.5">
-          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</label>
-          <Input type={type} placeholder={placeholder} className="h-10" />
-        </div>
-      ))}
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Type</label>
+        <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          Guest Name
+        </Label>
+        <Input
+          type="text"
+          placeholder="e.g. Ramesh Chauhan"
+          className="h-10"
+          value={extractedName}
+          onChange={(e) => setExtractedName(e.target.value)}
+          disabled={saving}
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          Amount (₹)
+        </Label>
+        <Input
+          type="number"
+          placeholder="e.g. 2100"
+          className="h-10"
+          min={0}
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          disabled={saving}
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          Type
+        </Label>
         <div className="grid grid-cols-2 gap-2">
-          {["Cash", "Envelope"].map((t, i) => (
-            <Button key={t} variant={i === 0 ? "default" : "outline"} className="w-full">{t}</Button>
+          {entryTypes.map(({ label, value }) => (
+            <Button
+              key={value}
+              type="button"
+              variant={entryType === value ? "default" : "outline"}
+              className="w-full"
+              onClick={() => setEntryType(value)}
+              disabled={saving}
+            >
+              {label}
+            </Button>
           ))}
         </div>
       </div>
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Relation / Tag</label>
-        <Input placeholder="e.g. Bride's Uncle" className="h-10" />
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Notes (optional)</label>
-        <textarea
-          rows={2}
-          placeholder="Any additional notes..."
-          className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50 resize-none"
-        />
-      </div>
+
+      {error && (
+        <p className="text-sm text-destructive">{error}</p>
+      )}
+
       <Separator />
+
       <div className="flex gap-3">
-        <Button variant="outline" className="flex-1" onClick={onCancel}>Cancel</Button>
-        <Button className="flex-1" onClick={onSave}><CheckCircle2 strokeWidth={2.5} /> Save Entry</Button>
+        <Button variant="outline" className="flex-1" onClick={onCancel} disabled={saving}>
+          Cancel
+        </Button>
+        <Button className="flex-1" onClick={handleSave} disabled={saving}>
+          {saving ? (
+            <Loader2 className="animate-spin" />
+          ) : (
+            <CheckCircle2 strokeWidth={2.5} />
+          )}
+          {saving ? "Saving…" : "Save Entry"}
+        </Button>
       </div>
     </div>
   );

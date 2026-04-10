@@ -41,7 +41,7 @@ export default function CapturePage() {
 
             {activeMode === "snap" && <SnapMode onDone={() => setActiveMode(null)} />}
             {activeMode === "voice" && <VoiceMode onCancel={() => setActiveMode(null)} />}
-            {activeMode === "manual" && <ManualEntryForm onCancel={() => setActiveMode(null)} onSave={() => setActiveMode(null)} />}
+            {activeMode === "manual" && <ManualEntryForm onCancel={() => setActiveMode(null)} />}
           </div>
         )}
       </div>
