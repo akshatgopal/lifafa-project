@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/lib/supabase";
 import type { EntryType } from "@/types/ledger";
 
@@ -24,24 +25,11 @@ export function ManualEntryForm({ onCancel }: ManualEntryFormProps) {
 
   async function handleSave() {
     setError(null);
-
-    const trimmedName = extractedName.trim();
-    const parsedAmount = parseInt(amount, 10);
-
-    if (!trimmedName) {
-      setError("Guest name is required.");
-      return;
-    }
-    if (!amount || isNaN(parsedAmount) || parsedAmount < 0) {
-      setError("Enter a valid amount (0 or more).");
-      return;
-    }
-
     setSaving(true);
 
     const { error: dbError } = await supabase.from("ledger").insert({
-      amount: parsedAmount,
-      extracted_name: trimmedName,
+      amount: parseInt(amount, 10),
+      extracted_name: extractedName.trim(),
       entry_type: entryType,
       status: "COMPLETED",
     });
@@ -54,6 +42,14 @@ export function ManualEntryForm({ onCancel }: ManualEntryFormProps) {
 
     router.push("/dashboard");
   }
+
+  const parsedAmount = parseInt(amount, 10);
+  const saveDisabled = !extractedName.trim() || !amount || isNaN(parsedAmount) || parsedAmount <= 0;
+  const saveDisabledReason = !extractedName.trim() && (!amount || isNaN(parsedAmount) || parsedAmount <= 0)
+    ? "Enter a name and amount to save"
+    : !extractedName.trim()
+    ? "Enter a guest name to save"
+    : "Enter an amount greater than ₹0 to save";
 
   const entryTypes: { label: string; value: EntryType }[] = [
     { label: "Cash", value: "CASH" },
@@ -121,14 +117,21 @@ export function ManualEntryForm({ onCancel }: ManualEntryFormProps) {
         <Button variant="outline" className="flex-1" onClick={onCancel} disabled={saving}>
           Cancel
         </Button>
-        <Button className="flex-1" onClick={handleSave} disabled={saving}>
-          {saving ? (
-            <Loader2 className="animate-spin" />
-          ) : (
-            <CheckCircle2 strokeWidth={2.5} />
-          )}
-          {saving ? "Saving…" : "Save Entry"}
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className={(saveDisabled || saving) ? "flex-1 cursor-not-allowed" : "flex-1"}>
+                <Button className="w-full" onClick={handleSave} disabled={saveDisabled || saving}>
+                  {saving ? <Loader2 className="animate-spin" /> : <CheckCircle2 strokeWidth={2.5} />}
+                  {saving ? "Saving…" : "Save Entry"}
+                </Button>
+              </span>
+            </TooltipTrigger>
+            {saveDisabled && (
+              <TooltipContent side="top">{saveDisabledReason}</TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   );
