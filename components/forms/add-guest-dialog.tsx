@@ -8,12 +8,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { api } from "@/lib/api";
 
 interface AddGuestDialogProps {
+  weddingId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onGuestAdded: () => void;
 }
 
-export function AddGuestDialog({ open, onOpenChange, onGuestAdded }: AddGuestDialogProps) {
+export function AddGuestDialog({ weddingId, open, onOpenChange, onGuestAdded }: AddGuestDialogProps) {
   const [guestName, setGuestName] = useState("");
   const [guestRelation, setGuestRelation] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
@@ -42,7 +43,7 @@ export function AddGuestDialog({ open, onOpenChange, onGuestAdded }: AddGuestDia
     setSaveSuccess(false);
 
     try {
-      await api.createGuest({
+      await api.createGuest(weddingId, {
         name: guestName.trim(),
         relation: guestRelation.trim() || null,
         phone: guestPhone.trim() || null,

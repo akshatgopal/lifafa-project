@@ -6,6 +6,7 @@ import { Mic, Play, Pause, RotateCcw, Loader2, CheckCircle2, Trash2 } from "luci
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
+import { useWeddingStore } from "@/store/wedding-store";
 
 interface VoiceModeProps {
   onCancel: () => void;
@@ -13,6 +14,8 @@ interface VoiceModeProps {
 
 export function VoiceMode({ onCancel }: VoiceModeProps) {
   const router = useRouter();
+  // Under WeddingGuard this is guaranteed non-null.
+  const wedding = useWeddingStore((s) => s.wedding)!;
   const [recording, setRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -95,7 +98,7 @@ export function VoiceMode({ onCancel }: VoiceModeProps) {
     setSaving(true);
 
     try {
-      await api.createVoice(audioBlob, `voice_${Date.now()}.webm`);
+      await api.createVoice(wedding.id, audioBlob, `voice_${Date.now()}.webm`);
       router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save recording");

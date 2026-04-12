@@ -6,6 +6,7 @@ export type GiftType = "CASH" | "ENVELOPE" | "VOICE" | "MANUAL";
 
 export interface LedgerEntry {
   id: string;
+  wedding_id: string;
   guest_id: string | null;
   amount: number;
   extracted_name: string | null;

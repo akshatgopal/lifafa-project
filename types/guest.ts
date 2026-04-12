@@ -1,5 +1,6 @@
 export interface Guest {
   id: string;
+  wedding_id: string;
   name: string;
   relation: string | null;
   phone: string | null;

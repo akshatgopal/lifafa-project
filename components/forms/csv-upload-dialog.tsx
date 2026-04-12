@@ -10,12 +10,13 @@ import { parseCSV } from "@/lib/csv";
 import { CSVRow } from "@/types/guest";
 
 interface CSVUploadDialogProps {
+  weddingId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUploadComplete: () => void;
 }
 
-export function CSVUploadDialog({ open, onOpenChange, onUploadComplete }: CSVUploadDialogProps) {
+export function CSVUploadDialog({ weddingId, open, onOpenChange, onUploadComplete }: CSVUploadDialogProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -76,7 +77,7 @@ export function CSVUploadDialog({ open, onOpenChange, onUploadComplete }: CSVUpl
 
           setUploadProgress(60);
 
-          await api.bulkUpsertGuests(guestsToInsert);
+          await api.bulkUpsertGuests(weddingId, guestsToInsert);
 
           setUploadProgress(100);
           setUploadStatus("success");
@@ -195,7 +196,7 @@ export function CSVUploadDialog({ open, onOpenChange, onUploadComplete }: CSVUpl
           )}
           {uploadStatus === "error" && (
             <div className="text-sm text-destructive">
-              Failed to upload. Check your Supabase connection.
+              Failed to upload. Check your backend connection.
             </div>
           )}
         </div>
@@ -211,7 +212,7 @@ export function CSVUploadDialog({ open, onOpenChange, onUploadComplete }: CSVUpl
                 Uploading...
               </>
             ) : (
-              "Upload to Supabase"
+              "Upload"
             )}
           </Button>
         </DialogFooter>

@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { api } from "@/lib/api";
 import type { EntryType } from "@/types/ledger";
+import { useWeddingStore } from "@/store/wedding-store";
 
 interface ManualEntryFormProps {
   onCancel: () => void;
@@ -17,6 +18,8 @@ interface ManualEntryFormProps {
 
 export function ManualEntryForm({ onCancel }: ManualEntryFormProps) {
   const router = useRouter();
+  // Under WeddingGuard this is guaranteed non-null.
+  const wedding = useWeddingStore((s) => s.wedding)!;
   const [extractedName, setExtractedName] = useState("");
   const [amount, setAmount] = useState("");
   const [entryType, setEntryType] = useState<EntryType>("CASH");
@@ -28,7 +31,7 @@ export function ManualEntryForm({ onCancel }: ManualEntryFormProps) {
     setSaving(true);
 
     try {
-      await api.createManual({
+      await api.createManual(wedding.id, {
         amount: parseInt(amount, 10),
         extracted_name: extractedName.trim(),
         entry_type: entryType as "CASH" | "ENVELOPE",

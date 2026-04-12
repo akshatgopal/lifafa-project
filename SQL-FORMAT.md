@@ -5,6 +5,7 @@ relation TEXT,
 phone TEXT,
 address TEXT,
 created_at TIMESTAMPTZ DEFAULT NOW(),
+wedding_id UUID REFERENCES weddings(id) ON DELETE CASCADE,
 )
 
 ledger (
@@ -16,4 +17,12 @@ status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'PROCESSING', 'COMPLE
 entry_type TEXT NOT NULL CHECK (entry_type IN ('CASH', 'ENVELOPE', 'VOICE', 'MANUAL')),
 media_url TEXT,
 created_at TIMESTAMPTZ DEFAULT NOW()
+wedding_id UUID REFERENCES weddings(id) ON DELETE CASCADE,
+);
+
+WEDDINGS(
+id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+event_name TEXT,
+event_date DATE,
+created_at timestamp default NOW()
 );

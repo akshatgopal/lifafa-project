@@ -6,12 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Numpad } from "@/components/shared/numpad";
 import { api } from "@/lib/api";
+import { useWeddingStore } from "@/store/wedding-store";
 
 interface SnapModeProps {
   onDone: () => void;
 }
 
 export function SnapMode({ onDone }: SnapModeProps) {
+  // Under WeddingGuard this is guaranteed non-null.
+  const wedding = useWeddingStore((s) => s.wedding)!;
+
   const [numpadValue, setNumpadValue] = useState("");
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -52,7 +56,7 @@ export function SnapMode({ onDone }: SnapModeProps) {
     setError(null);
 
     try {
-      await api.createSnap(Math.round(amount), uploadedFile);
+      await api.createSnap(wedding.id, Math.round(amount), uploadedFile);
       onDone();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");

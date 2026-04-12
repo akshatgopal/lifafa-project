@@ -11,8 +11,12 @@ import { AddGuestDialog } from "@/components/forms/add-guest-dialog";
 import { CSVUploadDialog } from "@/components/forms/csv-upload-dialog";
 import { api } from "@/lib/api";
 import { Guest } from "@/types/guest";
+import { useWeddingStore } from "@/store/wedding-store";
 
 export default function GuestsPage() {
+  // Under WeddingGuard this is guaranteed non-null.
+  const wedding = useWeddingStore((s) => s.wedding)!;
+
   const [guests, setGuests] = useState<Guest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -24,13 +28,14 @@ export default function GuestsPage() {
 
   useEffect(() => {
     fetchGuests();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wedding.id]);
 
   async function fetchGuests() {
     setLoading(true);
     setError("");
     try {
-      const data = await api.listGuests();
+      const data = await api.listGuests(wedding.id);
       setGuests(data || []);
     } catch (err) {
       console.error("Fetch error:", err);
@@ -194,8 +199,18 @@ export default function GuestsPage() {
         </Card>
       </div>
 
-      <AddGuestDialog open={isAddGuestOpen} onOpenChange={setIsAddGuestOpen} onGuestAdded={fetchGuests} />
-      <CSVUploadDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} onUploadComplete={fetchGuests} />
+      <AddGuestDialog
+        weddingId={wedding.id}
+        open={isAddGuestOpen}
+        onOpenChange={setIsAddGuestOpen}
+        onGuestAdded={fetchGuests}
+      />
+      <CSVUploadDialog
+        weddingId={wedding.id}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onUploadComplete={fetchGuests}
+      />
     </div>
   );
 }

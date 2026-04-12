@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, Playfair_Display, IBM_Plex_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { TopProgressBar } from "@/components/shared/top-progress-bar";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -35,7 +36,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       suppressHydrationWarning
     >
       <body className="min-h-full" suppressHydrationWarning>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <TopProgressBar />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

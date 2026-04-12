@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ChatMessage, ThinkingIndicator } from "@/components/munshi/chat-message";
 import { ChatInput } from "@/components/munshi/chat-input";
 import { api } from "@/lib/api";
+import { useWeddingStore } from "@/store/wedding-store";
 
 interface Message {
   id: string;
@@ -31,6 +32,9 @@ function nowTimestamp(): string {
 }
 
 export default function MunshiPage() {
+  // Under WeddingGuard this is guaranteed non-null.
+  const wedding = useWeddingStore((s) => s.wedding)!;
+
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [isThinking, setIsThinking] = useState(false);
 
@@ -46,7 +50,7 @@ export default function MunshiPage() {
     setIsThinking(true);
 
     try {
-      const { answer } = await api.chat(text);
+      const { answer } = await api.chat(wedding.id, text);
       setMessages((prev) => [
         ...prev,
         {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Search, SlidersHorizontal, ChevronDown, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,26 +10,53 @@ import { StatsCards } from "@/components/dashboard/stats-cards";
 import { LedgerTable } from "@/components/dashboard/ledger-table";
 import { api } from "@/lib/api";
 import type { LedgerEntry } from "@/types/ledger";
+import { useWeddingStore } from "@/store/wedding-store";
+
+function formatEventDate(date: string | null): string | null {
+  if (!date) return null;
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return date;
+  return parsed.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
 
 export default function DashboardPage() {
+  // Under WeddingGuard this is guaranteed non-null.
+  const wedding = useWeddingStore((s) => s.wedding)!;
+
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     async function fetchEntries() {
+      setLoading(true);
+      setError(null);
       try {
-        const data = await api.listLedger();
-        setEntries(data);
+        const data = await api.listLedger(wedding.id);
+        if (!cancelled) setEntries(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load ledger");
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load ledger"
+          );
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     fetchEntries();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [wedding.id]);
+
+  const dateLabel = formatEventDate(wedding.event_date);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -38,7 +66,8 @@ export default function DashboardPage() {
             Gift Ledger
           </h1>
           <p className="mt-0.5 text-[13px] text-muted-foreground">
-            Sharma–Verma Wedding · 9 April 2026
+            {wedding.event_name}
+            {dateLabel ? ` · ${dateLabel}` : ""}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -47,7 +76,7 @@ export default function DashboardPage() {
             Export CSV
           </Button>
           <Button size="sm" asChild>
-            <a href="/capture">+ New Entry</a>
+            <Link href="/capture">+ New Entry</Link>
           </Button>
         </div>
       </header>
